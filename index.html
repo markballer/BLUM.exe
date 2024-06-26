@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLUM.exe Drop Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f0f0;
+            overflow: hidden;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            border: 2px solid #333;
+            background-color: #fff;
+            margin: 20px auto;
+        }
+        .dollar, .freeze {
+            position: absolute;
+            cursor: pointer;
+        }
+        .dollar img {
+            width: 25px;
+            height: 25px;
+        }
+        .freeze {
+            font-size: 1em;
+            color: blue;
+            width: 60px;
+            height: 25px;
+            line-height: 25px;
+            text-align: center;
+            cursor: pointer;
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+        #playButton {
+            font-size: 1.5em;
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #playButton:hover {
+            background-color: #45a049;
+        }
+        #blumUSDT, #timer {
+            font-size: 1.5em;
+            margin-top: 10px;
+        }
+        #cursorDollar {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: url('dollar.png') no-repeat center center;
+            background-size: contain;
+            pointer-events: none; /* To allow clicks to pass through */
+        }
+    </style>
+</head>
+<body>
+    <h1>BLUM.exe Drop Game</h1>
+    <button id="playButton">Play</button>
+    <div id="blumUSDT">BLUM.exe/USDT: 0</div>
+    <div id="timer">Time: 30s</div>
+    <div id="gameContainer"></div>
+    <div id="cursorDollar"></div>
+
+    <script>
+        const gameContainer = document.getElementById('gameContainer');
+        const playButton = document.getElementById('playButton');
+        const blumUSDTDisplay = document.getElementById('blumUSDT');
+        const timerDisplay = document.getElementById('timer');
+        const cursorDollar = document.getElementById('cursorDollar');
+        let score = 0;
+        let timer = 30;
+        let isFrozen = false;
+        let canDropFreeze = true;
+
+        playButton.addEventListener('click', () => {
+            startGame();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            cursorDollar.style.left = e.clientX - 25 + 'px';
+            cursorDollar.style.top = e.clientY - 25 + 'px';
+        });
+
+        cursorDollar.addEventListener('click', () => {
+            if (!isFrozen) {
+                score++;
+                blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
+            }
+        });
+
+        function startGame() {
+            timer = 30;
+            isFrozen = false;
+            canDropFreeze = true;
+            timerDisplay.textContent = `Time: ${timer}s`;
+            playButton.disabled = true;
+
+            const gameInterval = setInterval(() => {
+                if (!isFrozen) {
+                    createDollar();
+                }
+                if (canDropFreeze) {
+                    createFreeze();
+                    canDropFreeze = false;
+                    setTimeout(() => {
+                        canDropFreeze = true;
+                    }, 5000); // Allow dropping a freeze button every 5 seconds
+                }
+            }, 500);
+
+            const timerInterval = setInterval(() => {
+                if (!isFrozen) {
+                    timer--;
+                    timerDisplay.textContent = `Time: ${timer}s`;
+                }
+                if (timer <= 0) {
+                    clearInterval(gameInterval);
+                    clearInterval(timerInterval);
+                    playButton.disabled = false;
+                }
+            }, 1000);
+        }
+
+        function createDollar() {
+            const dollar = document.createElement('div');
+            dollar.classList.add('dollar');
+            dollar.style.left = Math.random() * (window.innerWidth - 25) + 'px'; // Random horizontal position
+            dollar.style.top = '0px';
+            dollar.innerHTML = '<img src="dollar.png" alt="Dollar">';
+            gameContainer.appendChild(dollar);
+
+            dollar.addEventListener('click', () => {
+                if (!isFrozen) {
+                    score++;
+                    blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
+                }
+                gameContainer.removeChild(dollar);
+            });
+
+            animateDollar(dollar);
+        }
+
+        function createFreeze() {
+            const freeze = document.createElement('div');
+            freeze.textContent = 'Freeze';
+            freeze.classList.add('freeze');
+            freeze.style.left = Math.random() * (window.innerWidth - 60) + 'px'; // Random horizontal position
+            freeze.style.top = '0px';
+            gameContainer.appendChild(freeze);
+
+            freeze.addEventListener('click', () => {
+                isFrozen = true;
+                gameContainer.removeChild(freeze);
+                setTimeout(() => {
+                    isFrozen = false;
+                }, 3000); // Freeze for 3 seconds
+            });
+
+            animateDollar(freeze);
+        }
+
+        function animateDollar(element) {
+            let top = 0;
+            const fallSpeed = 2 + Math.random() * 3; // Random fall speed
+
+            const fallInterval = setInterval(() => {
+                if (isFrozen) return; // Stop moving if frozen
+                if (top >= gameContainer.clientHeight - 25) { // Stop when it reaches the bottom
+                    clearInterval(fallInterval);
+                    gameContainer.removeChild(element);
+                } else {
+                    top += fallSpeed;
+                    element.style.top = top + 'px';
+                }
+            }, 20);
+        }
+    </script>
+</body>
+</html>
+
