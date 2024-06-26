@@ -23,11 +23,11 @@
             background-color: #fff;
             margin: 20px auto;
         }
-        .dollar, .freeze {
+        .dollar, .freeze, .bomb {
             position: absolute;
             cursor: pointer;
         }
-        .dollar img {
+        .dollar img, .bomb img {
             width: 25px;
             height: 25px;
         }
@@ -59,13 +59,10 @@
             font-size: 1.5em;
             margin-top: 10px;
         }
-        #cursorDollar {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: url('dollar.png') no-repeat center center;
-            background-size: contain;
-            pointer-events: none; /* To allow clicks to pass through */
+        #overallBlumUSDT {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #555;
         }
     </style>
 </head>
@@ -74,46 +71,38 @@
     <button id="playButton">Play</button>
     <div id="blumUSDT">BLUM.exe/USDT: 0</div>
     <div id="timer">Time: 30s</div>
+    <div id="overallBlumUSDT">Overall BLUM.exe/USDT: 0</div>
     <div id="gameContainer"></div>
-    <div id="cursorDollar"></div>
 
     <script>
         const gameContainer = document.getElementById('gameContainer');
         const playButton = document.getElementById('playButton');
         const blumUSDTDisplay = document.getElementById('blumUSDT');
         const timerDisplay = document.getElementById('timer');
-        const cursorDollar = document.getElementById('cursorDollar');
+        const overallBlumUSDTDisplay = document.getElementById('overallBlumUSDT');
         let score = 0;
         let timer = 30;
         let isFrozen = false;
         let canDropFreeze = true;
+        let overallScore = 0;
 
         playButton.addEventListener('click', () => {
             startGame();
         });
 
-        document.addEventListener('mousemove', (e) => {
-            cursorDollar.style.left = e.clientX - 25 + 'px';
-            cursorDollar.style.top = e.clientY - 25 + 'px';
-        });
-
-        cursorDollar.addEventListener('click', () => {
-            if (!isFrozen) {
-                score++;
-                blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
-            }
-        });
-
         function startGame() {
             timer = 30;
+            score = 0;
             isFrozen = false;
             canDropFreeze = true;
+            blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
             timerDisplay.textContent = `Time: ${timer}s`;
             playButton.disabled = true;
 
             const gameInterval = setInterval(() => {
                 if (!isFrozen) {
                     createDollar();
+                    if (Math.random() < 0.2) createBomb(); // 20% chance to create a bomb
                 }
                 if (canDropFreeze) {
                     createFreeze();
@@ -132,6 +121,8 @@
                 if (timer <= 0) {
                     clearInterval(gameInterval);
                     clearInterval(timerInterval);
+                    overallScore += score;
+                    overallBlumUSDTDisplay.textContent = `Overall BLUM.exe/USDT: ${overallScore}`;
                     playButton.disabled = false;
                 }
             }, 1000);
@@ -153,7 +144,27 @@
                 gameContainer.removeChild(dollar);
             });
 
-            animateDollar(dollar);
+            animateElement(dollar);
+        }
+
+        function createBomb() {
+            const bomb = document.createElement('div');
+            bomb.classList.add('bomb');
+            bomb.style.left = Math.random() * (window.innerWidth - 25) + 'px'; // Random horizontal position
+            bomb.style.top = '0px';
+            bomb.innerHTML = '<img src="bomb.png" alt="Bomb">';
+            gameContainer.appendChild(bomb);
+
+            bomb.addEventListener('click', () => {
+                if (!isFrozen) {
+                    score -= 10;
+                    if (score < 0) score = 0;
+                    blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
+                }
+                gameContainer.removeChild(bomb);
+            });
+
+            animateElement(bomb);
         }
 
         function createFreeze() {
@@ -165,17 +176,21 @@
             gameContainer.appendChild(freeze);
 
             freeze.addEventListener('click', () => {
-                isFrozen = true;
-                gameContainer.removeChild(freeze);
-                setTimeout(() => {
-                    isFrozen = false;
-                }, 3000); // Freeze for 3 seconds
+                if (!isFrozen) {
+                    score++;
+                    blumUSDTDisplay.textContent = `BLUM.exe/USDT: ${score}`;
+                    isFrozen = true;
+                    gameContainer.removeChild(freeze);
+                    setTimeout(() => {
+                        isFrozen = false;
+                    }, 3000); // Freeze for 3 seconds
+                }
             });
 
-            animateDollar(freeze);
+            animateElement(freeze);
         }
 
-        function animateDollar(element) {
+        function animateElement(element) {
             let top = 0;
             const fallSpeed = 2 + Math.random() * 3; // Random fall speed
 
