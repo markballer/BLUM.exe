@@ -21,7 +21,7 @@
             width: 100%;
             height: 500px;
             border: 2px solid #333;
-            background: url('background.jpg') no-repeat center center; /* Background image */
+            background: url('background.jpg') no-repeat center center; /* Updated background image */
             background-size: cover; /* Cover the entire container */
             margin: 20px auto;
         }
@@ -30,8 +30,8 @@
             cursor: pointer;
         }
         .dollar img, .bomb img {
-            width: 50px; /* Size 50px */
-            height: 50px; /* Size 50px */
+            width: 50px; /* Updated size */
+            height: 50px; /* Updated size */
         }
         .freeze {
             font-size: 1em;
@@ -66,58 +66,23 @@
             margin-top: 10px;
             color: #aaa; /* Lighter gray for overall score */
         }
-        #nicknameModal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-        #nicknameModalContent {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
+        #nicknameContainer {
+            margin-bottom: 20px;
         }
         #nicknameInput {
+            font-size: 1em;
             padding: 10px;
-            font-size: 1em;
-            width: 80%;
-            margin-bottom: 10px;
-        }
-        #submitNickname {
-            padding: 10px 20px;
-            font-size: 1em;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
+            margin: 10px;
+            border: 2px solid #333;
             border-radius: 5px;
-        }
-        #nicknameDisplay {
-            font-size: 1.2em;
-            margin-top: 10px;
-            color: #aaa; /* Lighter gray for nickname */
         }
     </style>
 </head>
 <body>
-    <div id="nicknameModal">
-        <div id="nicknameModalContent">
-            <h2>Enter your nickname</h2>
-            <input type="text" id="nicknameInput" placeholder="Nickname">
-            <button id="submitNickname">Submit</button>
-        </div>
-    </div>
-
     <h1>BLUM.exe Drop Game</h1>
-    <div id="nicknameDisplay"></div>
+    <div id="nicknameContainer">
+        <input type="text" id="nicknameInput" placeholder="Enter your nickname">
+    </div>
     <button id="playButton">Play</button>
     <div id="blumUSDT">BLUM.exe/USDT: 0</div>
     <div id="timer">Time: 30s</div>
@@ -125,37 +90,28 @@
     <div id="gameContainer"></div>
 
     <script>
-        const nicknameModal = document.getElementById('nicknameModal');
-        const nicknameInput = document.getElementById('nicknameInput');
-        const submitNickname = document.getElementById('submitNickname');
-        const nicknameDisplay = document.getElementById('nicknameDisplay');
         const gameContainer = document.getElementById('gameContainer');
         const playButton = document.getElementById('playButton');
         const blumUSDTDisplay = document.getElementById('blumUSDT');
         const timerDisplay = document.getElementById('timer');
         const overallBlumUSDTDisplay = document.getElementById('overallBlumUSDT');
-        let nickname = '';
+        const nicknameInput = document.getElementById('nicknameInput');
         let score = 0;
         let timer = 30;
         let isFrozen = false;
         let canDropFreeze = true;
         let overallScore = 0;
 
-        submitNickname.addEventListener('click', () => {
-            nickname = nicknameInput.value.trim();
-            if (nickname) {
-                console.log(`Nickname entered: ${nickname}`);
-                nicknameDisplay.textContent = `Nickname: ${nickname}`;
-                nicknameModal.style.display = 'none';
-            }
-        });
-
         playButton.addEventListener('click', () => {
-            startGame();
+            const nickname = nicknameInput.value.trim();
+            if (nickname === '') {
+                alert('Please enter your nickname.');
+                return;
+            }
+            startGame(nickname);
         });
 
-        function startGame() {
-            console.log('Game started');
+        function startGame(nickname) {
             timer = 30;
             score = 0;
             isFrozen = false;
@@ -186,18 +142,30 @@
                 if (timer <= 0) {
                     clearInterval(gameInterval);
                     clearInterval(timerInterval);
-                    endGame();
+                    overallScore += score;
+                    overallBlumUSDTDisplay.textContent = `Overall BLUM.exe/USDT: ${overallScore}`;
+                    playButton.disabled = false;
+
+                    // Send the nickname and score to the server
+                    fetch('http://localhost:3000/submitScore', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            nickname: nickname,
+                            score: score
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Score submitted successfully:', data);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
                 }
             }, 1000);
-        }
-
-        function endGame() {
-            console.log('Game ended');
-            console.log(`Final score for ${nickname}: ${score}`);
-            overallScore += score;
-            fetchOverallBlumUSDT();
-            saveScore();
-            playButton.disabled = false;
         }
 
         function createDollar() {
@@ -270,59 +238,13 @@
                 if (isFrozen) return; // Stop moving if frozen
                 if (top >= gameContainer.clientHeight - 50) { // Adjusted for new size
                     clearInterval(fallInterval);
-                    if (gameContainer.contains(element)) {
-                        gameContainer.removeChild(element);
-                    }
+                    gameContainer.removeChild(element);
                 } else {
                     top += fallSpeed;
                     element.style.top = top + 'px';
                 }
             }, 20);
         }
-
-        function saveScore() {
-    fetch('/save', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ nickname, clicks: score })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Data saved:', data);
-    })
-    .catch(error => {
-        console.error('Error saving data:', error);
-    });
-}
-
-function fetchOverallBlumUSDT() {
-    fetch('/total-clicks')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Network response was not ok: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Total clicks data:', data);
-            overallBlumUSDTDisplay.textContent = `Overall BLUM.exe/USDT: ${data.totalClicks}`;
-        })
-        .catch(error => {
-            console.error('Error fetching total clicks:', error);
-        });
-}
-
-window.onload = () => {
-    nicknameModal.style.display = 'flex';
-    fetchOverallBlumUSDT();
-};
-       
-        window.onload = () => {
-            nicknameModal.style.display = 'flex';
-            fetchOverallBlumUSDT();
-        };
     </script>
 </body>
 </html>
