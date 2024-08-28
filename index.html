@@ -10,15 +10,19 @@
             text-align: center;
             padding: 20px;
             overflow: hidden;
+            color: var(--tg-theme-text-color);
+            background: var(--tg-theme-bg-color);
         }
         h1 {
             margin-top: 20px;
+            color: var(--tg-theme-text-color);
         }
         #gameContainer {
             position: relative;
             width: 100%;
             height: 500px;
-            border: 2px solid #333;
+            border: 2px solid var(--tg-theme-border-color);
+            background: var(--tg-theme-bg-color);
             margin: 20px auto;
         }
         .dollar, .freeze, .bomb {
@@ -36,6 +40,8 @@
             line-height: 25px;
             text-align: center;
             cursor: pointer;
+            background-color: var(--tg-theme-accent-color);
+            color: var(--tg-theme-text-color);
             border-radius: 5px;
         }
         #playButton {
@@ -43,17 +49,23 @@
             padding: 10px 20px;
             margin: 10px;
             cursor: pointer;
+            background-color: var(--tg-theme-accent-color);
+            color: var(--tg-theme-text-color);
             border: none;
             border-radius: 5px;
+        }
+        #playButton:hover {
+            background-color: var(--tg-theme-accent-color-hover);
         }
         #blumUSDT, #timer {
             font-size: 1.5em;
             margin-top: 10px;
+            color: var(--tg-theme-text-color);
         }
         #overallBlumUSDT {
             font-size: 1.2em;
             margin-top: 10px;
-            color: #aaa; /* Lighter gray for overall score */
+            color: var(--tg-theme-text-color-secondary);
         }
         #nicknameModal {
             display: none;
@@ -69,7 +81,7 @@
             z-index: 9999;
         }
         #nicknameModalContent {
-            background: white;
+            background: var(--tg-theme-bg-color-modal);
             padding: 20px;
             border-radius: 10px;
             text-align: center;
@@ -79,18 +91,24 @@
             font-size: 1em;
             width: 80%;
             margin-bottom: 10px;
+            background: var(--tg-theme-input-bg-color);
+            color: var(--tg-theme-text-color);
+            border: 1px solid var(--tg-theme-border-color);
+            border-radius: 5px;
         }
         #submitNickname {
             padding: 10px 20px;
             font-size: 1em;
             cursor: pointer;
+            background-color: var(--tg-theme-accent-color);
+            color: var(--tg-theme-text-color);
             border: none;
             border-radius: 5px;
         }
         #nicknameDisplay {
             font-size: 1.2em;
             margin-top: 10px;
-            color: #aaa; /* Lighter gray for nickname */
+            color: var(--tg-theme-text-color-secondary);
         }
     </style>
 </head>
@@ -110,10 +128,10 @@
     <div id="timer">Time: 30s</div>
     <div id="overallBlumUSDT">Overall BLUM.exe/USDT: 0</div>
     <div id="gameContainer"></div>
-<script src=""https://telegram.org/js/telegram-web-app.js"></script>
+
     <script>
         // Ensure Telegram WebApp script is included
-        
+        src=""https://telegram.org/js/telegram-web-app.js"></script>
 
         const telegram = window.Telegram.WebApp;
 
@@ -333,10 +351,9 @@
 
             // Apply Telegram theme color
             if (telegram) {
-                const themeColor = telegram.themeParams?.color || '#007bff'; // Default to a blue color
-                document.body.style.backgroundColor = themeColor;
-                document.querySelector('#playButton').style.backgroundColor = themeColor;
-                document.querySelector('#submitNickname').style.backgroundColor = themeColor;
+                document.body.style.backgroundColor = 'var(--tg-theme-bg-color)';
+                document.querySelector('#playButton').style.backgroundColor = 'var(--tg-theme-accent-color)';
+                document.querySelector('#submitNickname').style.backgroundColor = 'var(--tg-theme-accent-color)';
             }
         };
     </script>
